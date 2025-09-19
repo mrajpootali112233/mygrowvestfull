@@ -1,6 +1,16 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+// Environment-based API URL with fallback
+const getApiUrl = () => {
+  if (typeof window !== 'undefined') {
+    // Client-side
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+  }
+  // Server-side
+  return process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:3000/api';
+};
+
+const API_URL = getApiUrl();
 
 class ApiService {
   private api: AxiosInstance;
@@ -8,10 +18,11 @@ class ApiService {
   constructor() {
     this.api = axios.create({
       baseURL: API_URL,
-      timeout: 10000,
+      timeout: 30000, // Increased timeout for Vercel cold starts
       headers: {
         'Content-Type': 'application/json',
       },
+      withCredentials: false, // Set to true if using cookies
     });
 
     this.setupInterceptors();

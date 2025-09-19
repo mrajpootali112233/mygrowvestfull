@@ -1,24 +1,17 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
+  "version": 2,
   "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
   "outputDirectory": ".next",
-  "buildTask": "build",
   "env": {
-    "NEXT_PUBLIC_API_URL": "@next_public_api_url",
-    "NEXT_PUBLIC_APP_URL": "@next_public_app_url",
-    "NEXT_PUBLIC_BINANCE_DEPOSIT_ID": "@next_public_binance_deposit_id"
-  },
-  "build": {
-    "env": {
-      "NEXT_PUBLIC_API_URL": "https://your-backend-api.vercel.app/api",
-      "NEXT_PUBLIC_APP_URL": "https://your-frontend.vercel.app",
-      "NEXT_PUBLIC_BINANCE_DEPOSIT_ID": "941704599"
-    }
+    "NEXT_PUBLIC_API_URL": "https://mygrowvest-backend.vercel.app/api",
+    "NEXT_PUBLIC_APP_URL": "https://mygrowvest-frontend.vercel.app",
+    "NEXT_PUBLIC_BINANCE_DEPOSIT_ID": "941704599",
+    "NODE_ENV": "production"
   },
   "functions": {
-    "app/api/**/*.js": {
+    "src/app/api/**/*.js": {
       "maxDuration": 30
     }
   },
@@ -37,8 +30,25 @@
         {
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
         }
       ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://mygrowvest-backend.vercel.app/api/$1",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/healthcheck",
+      "destination": "/api/health"
     }
   ]
 }

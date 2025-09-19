@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://mygrowvest-frontend.vercel.app'),
   alternates: {
     canonical: '/',
   },
