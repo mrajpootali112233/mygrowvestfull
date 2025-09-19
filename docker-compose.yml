@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: mygrowvest
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - \"5432:5432\"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [\"CMD-SHELL\", \"pg_isready -U postgres\"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - \"3001:8080\"
+    environment:
+      NODE_ENV: development
+      PORT: 8080
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mygrowvest
+      JWT_SECRET: dev-jwt-secret-key-change-in-production
+      JWT_REFRESH_SECRET: dev-refresh-secret-key-change-in-production
+      JWT_EXPIRES_IN: 1h
+      JWT_REFRESH_EXPIRES_IN: 7d
+      FRONTEND_URL: http://localhost:3000
+      MAX_FILE_SIZE: 5242880
+      LOG_LEVEL: debug
+      RATE_LIMIT_MAX: 1000
+      RATE_LIMIT_WINDOW_MS: 900000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/logs:/app/logs
+    healthcheck:
+      test: [\"CMD-SHELL\", \"wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1\"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - \"3000:3000\"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_SITE_NAME: MyGrowVest
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: [\"CMD-SHELL\", \"wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1\"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  default:
+    driver: bridge"
